@@ -51,6 +51,7 @@ async def generate(req: GenerateRequest):
         "result": None,
     }
 
+    #Place a new request in the queue
     await request_queue.put({
         "request_id": request_id,
         "prompt": req.prompt,
@@ -58,6 +59,7 @@ async def generate(req: GenerateRequest):
         "start_time": start_time,
     })
 
+    #If it's still generating a request, look for something else to do
     while results[request_id]["status"] != "done":
         await asyncio.sleep(0.01)
 
@@ -65,11 +67,11 @@ async def generate(req: GenerateRequest):
 
     return result["result"]
 
-
-async def worker_loop():
+async def worker_loop():    
     while True:
         job = await request_queue.get()
 
+        # Get the info the the job highest in the queue
         request_id = job["request_id"]
         prompt = job["prompt"]
         max_new_tokens = job["max_new_tokens"]
@@ -77,31 +79,41 @@ async def worker_loop():
 
         print(f"Worker processing request {request_id}")
 
-        inputs = tokenizer(prompt, return_tensors="pt").to(device)
+        try:
+            inputs = tokenizer(prompt, return_tensors="pt").to(device)
 
-        with torch.no_grad():
-            output = model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=0.7,
-                pad_token_id=tokenizer.eos_token_id,
-            )
+            with torch.no_grad():
+                output = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=True,
+                    temperature=0.7,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
 
-        generated = output[0][inputs["input_ids"].shape[1]:]
-        text = tokenizer.decode(generated, skip_special_tokens=True)
+            generated = output[0][inputs["input_ids"].shape[1]:]
+            text = tokenizer.decode(generated, skip_special_tokens=True)
 
-        elapsed = time.time() - start_time
+            elapsed = time.time() - start_time
 
-        results[request_id] = {
-            "status": "done",
-            "result": {
-                "request_id": request_id,
-                "prompt": prompt,
-                "response": text,
-                "time_seconds": round(elapsed, 3),
-                "device": device,
-            },
-        }
+            results[request_id] = {
+                "status": "done",
+                "result": {
+                    "request_id": request_id,
+                    "prompt": prompt,
+                    "response": text,
+                    "time_seconds": round(elapsed, 3),
+                    "device": device,
+                },
+            }
 
-        request_queue.task_done()
+        except Exception as e: # Returns something so that generate can finish and process doesn't get frozen
+            results[request_id] = {
+                "status": "done",
+                "result": {
+                    "error": str(e),
+                },
+            }
+
+        finally:
+            request_queue.task_done()
