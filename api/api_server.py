@@ -17,8 +17,15 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device)
 model.eval()
 
+MAX_BATCH_SIZE = 8
+
 request_queue = asyncio.Queue()
 results = {}
+
+# Note: distilgpt2 had no pad token. GPT-2 family tokenizer ship without one, so padding=True will error. Thus we need to set a pad token
+tokenizer.pad_token = tokenizer.eos_token
+# Note: Need to do left padding. Causal model generate by continuing from the right end of each sequence.
+tokenizer.padding_side = "left"
 
 
 class GenerateRequest(BaseModel):
@@ -67,53 +74,56 @@ async def generate(req: GenerateRequest):
 
     return result["result"]
 
-async def worker_loop():    
+async def worker_loop():
     while True:
         job = await request_queue.get()
+        await asyncio.sleep(0.005)  # collection window
 
-        # Get the info the the job highest in the queue
-        request_id = job["request_id"]
-        prompt = job["prompt"]
-        max_new_tokens = job["max_new_tokens"]
-        start_time = job["start_time"]
+        batch = [job]
+        while len(batch) < MAX_BATCH_SIZE:
+            try:
+                batch.append(request_queue.get_nowait())
+            except asyncio.QueueEmpty:
+                break
 
-        print(f"Worker processing request {request_id}")
+        prompts = [j["prompt"] for j in batch]
+        inputs = tokenizer(prompts, return_tensors="pt", padding=True).to(device)
+        max_new_tokens = max(j["max_new_tokens"] for j in batch)
 
         try:
-            inputs = tokenizer(prompt, return_tensors="pt").to(device)
+            def run():
+                with torch.no_grad():
+                    return model.generate(
+                        **inputs,
+                        max_new_tokens=max_new_tokens,
+                        do_sample=True,
+                        temperature=0.7,
+                        pad_token_id=tokenizer.eos_token_id,
+                    )
 
-            with torch.no_grad():
-                output = model.generate(
-                    **inputs,
-                    max_new_tokens=max_new_tokens,
-                    do_sample=True,
-                    temperature=0.7,
-                    pad_token_id=tokenizer.eos_token_id,
-                )
+            output = await asyncio.to_thread(run)
 
-            generated = output[0][inputs["input_ids"].shape[1]:]
-            text = tokenizer.decode(generated, skip_special_tokens=True)
+            input_len = inputs["input_ids"].shape[1]
+            for i, j in enumerate(batch):
+                text = tokenizer.decode(output[i][input_len:], skip_special_tokens=True)
+                results[j["request_id"]] = {
+                    "status": "done",
+                    "result": {
+                        "request_id": j["request_id"],
+                        "prompt": j["prompt"],
+                        "response": text,
+                        "time_seconds": round(time.time() - j["start_time"], 3),
+                        "device": device,
+                    },
+                }
 
-            elapsed = time.time() - start_time
-
-            results[request_id] = {
-                "status": "done",
-                "result": {
-                    "request_id": request_id,
-                    "prompt": prompt,
-                    "response": text,
-                    "time_seconds": round(elapsed, 3),
-                    "device": device,
-                },
-            }
-
-        except Exception as e: # Returns something so that generate can finish and process doesn't get frozen
-            results[request_id] = {
-                "status": "done",
-                "result": {
-                    "error": str(e),
-                },
-            }
+        except Exception as e:
+            for j in batch:
+                results[j["request_id"]] = {
+                    "status": "done",
+                    "result": {"request_id": j["request_id"], "error": str(e)},
+                }
 
         finally:
-            request_queue.task_done()
+            for _ in batch:
+                request_queue.task_done()
