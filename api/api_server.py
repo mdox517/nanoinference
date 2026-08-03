@@ -87,12 +87,19 @@ async def worker_loop():
                 break
 
         prompts = [j["prompt"] for j in batch]
+        # tokenizer returns a dict-like with "input_ids" and "attention_mask",
+        # each a 2-D tensor of shape [batch_size, seq_len]. padding=True makes
+        # every row the same length by adding pad tokens (on the left, per line 28).
         inputs = tokenizer(prompts, return_tensors="pt", padding=True).to(device)
         max_new_tokens = max(j["max_new_tokens"] for j in batch)
 
         try:
+            # model.generate() is a slow, synchronous (blocking) call. Wrap it in a
+            # function to hand the function itself to asyncio.to_thread below.
             def run():
-                with torch.no_grad():
+                with torch.no_grad():  # skip gradient tracking; we're only doing inference
+                    # **inputs unpacks the dict into keyword args:
+                    # input_ids=..., attention_mask=...
                     return model.generate(
                         **inputs,
                         max_new_tokens=max_new_tokens,
@@ -101,10 +108,16 @@ async def worker_loop():
                         pad_token_id=tokenizer.eos_token_id,
                     )
 
-            output = await asyncio.to_thread(run)
+            # Run the blocking call in a background thread so the async event loop
+            # stays free to accept other requests / serve the health check.
+            output = await asyncio.to_thread(run) #Sends run to a separate thread
 
+            # input_ids has shape [batch_size, seq_len]; shape[1] is seq_len, i.e.
+            # how many (padded) prompt tokens precede the generated text in each row.
             input_len = inputs["input_ids"].shape[1]
             for i, j in enumerate(batch):
+                # output[i] = [prompt tokens | generated tokens]; slice off the first
+                # input_len (prompt) tokens so we decode only the newly generated text.
                 text = tokenizer.decode(output[i][input_len:], skip_special_tokens=True)
                 results[j["request_id"]] = {
                     "status": "done",
