@@ -10,7 +10,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 app = FastAPI()
 
-MODEL_NAME = "distilgpt2"
+MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)

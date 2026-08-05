@@ -1,0 +1,14 @@
+# Web server
+fastapi==0.138.1
+uvicorn==0.49.0
+pydantic==2.13.4
+
+# Model + inference
+torch==2.12.1
+transformers==5.12.1
+
+# Benchmarking / HTTP client
+httpx==0.28.1
+
+# Phase 4: distributed queue (uncomment when you add Redis)
+# redis==5.0.8
