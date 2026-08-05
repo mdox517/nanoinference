@@ -159,6 +159,19 @@ async def worker_loop():
             for _ in batch:
                 request_queue.task_done()
 
+@app.post("/reset")
+def reset():
+    # Zero out all stats so each benchmark run starts from a clean slate.
+    # Scalars are reassigned (need `global`); lists are cleared in place (don't).
+    global requests, total_tokens
+    requests = 0
+    total_tokens = 0
+    batch_sizes.clear()
+    inference_times.clear()
+    latencies.clear()
+    return {"status": "reset"}
+
+
 @app.get("/stats")
 def stats():
     return {
