@@ -5,16 +5,31 @@ import torch
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 
 app = FastAPI()
 
-MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+# Load in 4-bit so a 7B model fits in ~5GB of VRAM instead of ~14GB (fp16).
+# nf4 = the quant type tuned for LLM weights; double-quant squeezes a bit more.
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device)
+# NOTE: no .to(device) for quantized models, device_map places the weights
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    quantization_config=bnb_config,
+    device_map="cuda",
+)
 model.eval()
 
 MAX_BATCH_SIZE = 8
@@ -99,7 +114,24 @@ async def worker_loop():
 
         batch_sizes.append(len(batch))
 
-        prompts = [j["prompt"] for j in batch]
+        # Wrap each prompt in the model's own chat format (e.g. Qwen's
+        # <|im_start|>user ... <|im_start|>assistant) so it answers as an
+        # assistant instead of just autocompleting text. The tokenizer knows the
+        # correct markers for whatever model is loaded, so this survives model
+        # swaps. Base models (like distilgpt2) have no chat template, so we guard
+        # and fall back to the raw prompt.
+        if tokenizer.chat_template:
+            prompts = [
+                tokenizer.apply_chat_template(
+                    [{"role": "user", "content": j["prompt"]}],
+                    tokenize=False,
+                    add_generation_prompt=True,  # end with the assistant cue
+                )
+                for j in batch
+            ]
+        else:
+            prompts = [j["prompt"] for j in batch]
+
         # tokenizer returns a dict-like with "input_ids" and "attention_mask",
         # each a 2-D tensor of shape [batch_size, seq_len]. padding=True makes
         # every row the same length by adding pad tokens (on the left, per line 28).

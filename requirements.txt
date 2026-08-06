@@ -6,6 +6,8 @@ pydantic==2.13.4
 # Model + inference
 torch==2.12.1
 transformers==5.12.1
+accelerate==1.14.0        # required for device_map / quantized loading
+bitsandbytes==0.50.0      # 4-bit quantization (run 7B models in ~5GB VRAM)
 
 # Benchmarking / HTTP client
 httpx==0.28.1

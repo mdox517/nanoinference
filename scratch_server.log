@@ -1,110 +1,22 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 2791.29it/s]
-INFO:     Started server process [789917]
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]Loading weights:   0%|          | 1/339 [00:00<03:18,  1.70it/s]Loading weights:   1%|          | 2/339 [00:01<03:13,  1.74it/s]Loading weights:   1%|          | 4/339 [00:01<01:27,  3.81it/s]Loading weights:   2%|▏         | 6/339 [00:01<00:57,  5.76it/s]Loading weights:   5%|▍         | 16/339 [00:01<00:15, 20.63it/s]Loading weights:   6%|▌         | 20/339 [00:01<00:14, 21.99it/s]Loading weights:   8%|▊         | 28/339 [00:01<00:09, 32.40it/s]Loading weights:  10%|▉         | 33/339 [00:01<00:09, 32.47it/s]Loading weights:  12%|█▏        | 40/339 [00:02<00:07, 39.23it/s]Loading weights:  13%|█▎        | 45/339 [00:02<00:08, 36.73it/s]Loading weights:  15%|█▌        | 52/339 [00:02<00:06, 42.24it/s]Loading weights:  17%|█▋        | 57/339 [00:02<00:07, 38.74it/s]Loading weights:  19%|█▉        | 64/339 [00:02<00:06, 44.61it/s]Loading weights:  20%|██        | 69/339 [00:02<00:06, 39.87it/s]Loading weights:  22%|██▏       | 76/339 [00:02<00:05, 45.46it/s]Loading weights:  24%|██▍       | 81/339 [00:03<00:06, 40.76it/s]Loading weights:  26%|██▌       | 88/339 [00:03<00:05, 46.18it/s]Loading weights:  27%|██▋       | 93/339 [00:03<00:05, 41.02it/s]Loading weights:  29%|██▉       | 100/339 [00:03<00:05, 46.33it/s]Loading weights:  31%|███       | 105/339 [00:03<00:05, 41.69it/s]Loading weights:  33%|███▎      | 112/339 [00:03<00:04, 46.89it/s]Loading weights:  35%|███▍      | 117/339 [00:03<00:05, 40.28it/s]Loading weights:  37%|███▋      | 124/339 [00:04<00:04, 44.29it/s]Loading weights:  38%|███▊      | 129/339 [00:04<00:05, 38.15it/s]Loading weights:  40%|████      | 136/339 [00:04<00:04, 41.08it/s]Loading weights:  42%|████▏     | 141/339 [00:04<00:05, 35.29it/s]Loading weights:  44%|████▎     | 148/339 [00:04<00:04, 41.66it/s]Loading weights:  45%|████▌     | 153/339 [00:04<00:04, 37.60it/s]Loading weights:  47%|████▋     | 160/339 [00:05<00:05, 30.28it/s]Loading weights:  48%|████▊     | 164/339 [00:05<00:05, 30.76it/s]Loading weights:  51%|█████     | 173/339 [00:05<00:04, 38.64it/s]Loading weights:  54%|█████▍    | 184/339 [00:05<00:03, 49.29it/s]Loading weights:  56%|█████▌    | 190/339 [00:05<00:03, 48.97it/s]Loading weights:  58%|█████▊    | 197/339 [00:05<00:02, 52.08it/s]Loading weights:  61%|██████▏   | 208/339 [00:05<00:02, 61.81it/s]Loading weights:  63%|██████▎   | 215/339 [00:06<00:02, 61.86it/s]Loading weights:  65%|██████▌   | 222/339 [00:06<00:02, 54.13it/s]Loading weights:  69%|██████▊   | 233/339 [00:06<00:01, 61.92it/s]Loading weights:  72%|███████▏  | 244/339 [00:06<00:01, 68.13it/s]Loading weights:  74%|███████▍  | 251/339 [00:06<00:01, 65.78it/s]Loading weights:  76%|███████▌  | 258/339 [00:06<00:01, 54.81it/s]Loading weights:  79%|███████▉  | 269/339 [00:06<00:01, 62.32it/s]Loading weights:  83%|████████▎ | 280/339 [00:07<00:00, 67.97it/s]Loading weights:  85%|████████▍ | 288/339 [00:07<00:00, 65.91it/s]Loading weights:  87%|████████▋ | 295/339 [00:07<00:00, 57.96it/s]Loading weights:  90%|████████▉ | 305/339 [00:07<00:00, 63.28it/s]Loading weights:  93%|█████████▎| 316/339 [00:07<00:00, 69.22it/s]Loading weights:  96%|█████████▌| 324/339 [00:07<00:00, 66.97it/s]Loading weights:  98%|█████████▊| 331/339 [00:07<00:00, 58.36it/s]Loading weights: 100%|██████████| 339/339 [00:07<00:00, 42.62it/s]
+INFO:     Started server process [824058]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:33458 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33468 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60464 - "POST /reset HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60470 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60478 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60480 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60490 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60494 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60500 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60466 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60516 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60524 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60536 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60470 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60478 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60466 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60480 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60490 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60494 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60500 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60516 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60524 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60536 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60470 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60466 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60478 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60480 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60490 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60494 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60500 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60516 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60536 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60524 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:60470 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60466 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60478 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60480 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60490 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60494 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60500 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60516 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60536 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60524 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60470 - "GET /stats HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56874 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56872 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56880 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56892 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56902 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56914 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56916 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56928 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56944 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56946 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56874 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56872 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56880 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56902 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56892 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56914 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56916 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56928 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56874 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56944 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56946 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56872 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56874 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56880 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56902 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56892 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56914 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56916 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56928 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56944 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56946 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56872 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56874 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56880 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56902 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56892 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56914 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56916 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56928 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=20) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:56944 - "POST /generate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56872 - "GET /stats HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=60) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:49662 - "POST /generate HTTP/1.1" 200 OK
-[transformers] Both `max_new_tokens` (=80) and `max_length`(=2048) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
-INFO:     127.0.0.1:44770 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38632 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55100 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55114 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43236 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53140 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59718 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57702 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53894 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57728 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60760 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55574 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59392 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39354 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47436 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38752 - "POST /generate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54028 - "POST /generate HTTP/1.1" 200 OK
