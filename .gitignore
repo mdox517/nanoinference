@@ -21,5 +21,8 @@ dist/
 .DS_Store
 
 # Logs
-.log 
+.log
 *.logs
+
+# Private dev notes (not for public view)
+ROADMAP.md
