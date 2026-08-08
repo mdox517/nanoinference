@@ -2,6 +2,8 @@ import time
 import uuid
 import asyncio
 import torch
+import json
+import redis.asyncio as redis
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -9,6 +11,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 
 app = FastAPI()
+r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -34,8 +37,6 @@ model.eval()
 
 MAX_BATCH_SIZE = 8
 
-request_queue = asyncio.Queue()
-results = {}
 
 # Note: distilgpt2 had no pad token. GPT-2 family tokenizer ship without one, so padding=True will error. Thus we need to set a pad token
 tokenizer.pad_token = tokenizer.eos_token
@@ -62,12 +63,12 @@ async def startup_event():
 
 
 @app.get("/")
-def health_check():
+async def health_check():          # note: now async
     return {
         "status": "ok",
         "model": MODEL_NAME,
         "device": device,
-        "queue_size": request_queue.qsize(),
+        "queue_size": await r.llen("queue"),
     }
 
 
@@ -78,39 +79,46 @@ async def generate(req: GenerateRequest):
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
-    results[request_id] = {
-        "status": "pending",
-        "result": None,
-    }
 
-    #Place a new request in the queue
-    await request_queue.put({
+    job = {
         "request_id": request_id,
         "prompt": req.prompt,
         "max_new_tokens": req.max_new_tokens,
         "start_time": start_time,
-    })
+    }
 
-    #If it's still generating a request, look for something else to do
-    while results[request_id]["status"] != "done":
+    # Push the job onto the Redis queue (a list). rpush adds to the right end;
+    # the worker will pop from the left end -> FIFO
+    await r.rpush("queue", json.dumps(job))
+
+    # Poll Redis for this request's result. The worker writes a key named
+    # result:<id> when it's done. Until then, get() returns None
+    while True:
+        result = await r.get(f"result:{request_id}")
+        if result is not None:
+            break
         await asyncio.sleep(0.01)
 
-    result = results.pop(request_id)
-
-    return result["result"]
-
+    await r.delete(f"result:{request_id}") # clean up the key
+    return json.loads(result)
+    
 async def worker_loop():
     global total_tokens
     while True:
-        job = await request_queue.get()
+
+        # BLPOP blocks until a job appears, then pops it from the left of the list
+        # It returns a (key_name, value) tuple, so unpack and throw out the key
+        _, job_json = await r.blpop("queue")
+        job = json.loads(job_json) # JSON string -> dict
+        
         await asyncio.sleep(0.005)  # collection window
 
         batch = [job]
         while len(batch) < MAX_BATCH_SIZE:
-            try:
-                batch.append(request_queue.get_nowait())
-            except asyncio.QueueEmpty:
+            job_json = await r.lpop("queue")
+            if job_json is None:
                 break
+            batch.append(json.loads(job_json))
 
         batch_sizes.append(len(batch))
 
@@ -162,34 +170,36 @@ async def worker_loop():
             # input_ids has shape [batch_size, seq_len]; shape[1] is seq_len, i.e.
             # how many (padded) prompt tokens precede the generated text in each row.
             input_len = inputs["input_ids"].shape[1]
+
             for i, j in enumerate(batch):
+
                 text = tokenizer.decode(output[i][input_len:], skip_special_tokens=True)
                 latency = time.time() - j["start_time"]   # compute once, per request
                 latencies.append(latency)                 # store for p95
-                results[j["request_id"]] = {
-                    "status": "done",
-                    "result": {
-                        "request_id": j["request_id"],
-                        "prompt": j["prompt"],
-                        "response": text,
-                        "time_seconds": round(latency, 3),  # ← reuse the same value
-                        "device": device,
-                    },
+
+                result_payload = {
+                    "request_id": j["request_id"],
+                    "prompt": j["prompt"],
+                    "response": text,
+                    "time_seconds": round(latency, 3),
+                    "device": device,
                 }
+
+                # Set the result key. EX=60 auto deletes it after 60 seconds if the client
+                # never collects it
+                await r.set(f"result:{j['request_id']}", json.dumps(result_payload), ex=60)
+                
 
             new_tokens = (output.shape[1] - input_len) * len(batch)
             total_tokens += new_tokens
 
         except Exception as e:
             for j in batch:
-                results[j["request_id"]] = {
-                    "status": "done",
-                    "result": {"request_id": j["request_id"], "error": str(e)},
-                }
-
-        finally:
-            for _ in batch:
-                request_queue.task_done()
+                await r.set(
+                    f"result:{['request_id']}",
+                    json.dumps({"request_id": j["request_id"], "error": str(e)}),
+                    ex=60
+                )
 
 @app.post("/reset")
 def reset():
