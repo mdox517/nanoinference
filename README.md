@@ -14,40 +14,60 @@ nanoinference is a small GPU inference server for language models, built from sc
 
 It is not trying to beat a production inference server. This is a learning project: the point is to build the real pieces one layer at a time, and actually understand each one instead of importing it.
 
-The whole thing currently runs as a single process. Splitting it into separate API and worker services (over Redis) is the next milestone, see the roadmap below.
+It runs as two separate processes, an API server and a GPU worker, coordinating through Redis. The API holds no model and needs no GPU; the worker does the inference. See the roadmap below for what's next.
 
 ## What it's built around
 
 A few things I wanted to hold to while building it:
 
-- **Understand before optimizing.** Each piece is written by hand before reaching for a library that hides it. The batching loop, the queue, the metrics are all visible in one file.
+- **Understand before optimizing.** Each piece is written by hand before reaching for a library that hides it. The batching loop, the queue, the metrics are all visible in plain code.
 - **Measure everything.** Batch size, throughput, and p95 latency are tracked and exposed on an endpoint, not guessed at.
 - **One GPU, real models.** 4-bit quantization so a 7B-parameter model fits on a 12 GB consumer card.
 - **Stay responsive under load.** An async FastAPI front end that keeps accepting requests while the GPU is mid-generation.
 
 ## How it works
 
-A client sends a prompt to `POST /generate`. The request goes into a queue. A background worker waits a few milliseconds to see if other requests show up, groups whatever it has into a batch, runs the batch through the model in a single GPU pass, and returns each response to the right caller.
+A client sends a prompt to `POST /generate` on the API server. The API pushes the job onto a Redis queue and waits for a result key. The worker process pops the job, waits a few milliseconds to see if other requests show up, groups whatever it has into a batch, runs the batch through the model in a single GPU pass, and writes each result back to Redis for the API to return.
 
 Batching is the part that matters. Loading the model's weights is the expensive step, and it costs the same whether you're serving one prompt or eight. Grouping requests means you pay that cost once and reuse it across the whole batch, which is where the throughput gain comes from.
 
 ```mermaid
 flowchart LR
-  Client["Client (curl / benchmark)"] -->|POST /generate| API["FastAPI server"]
-  API -->|enqueue| Q["Request queue"]
-  Q -->|drain into a batch| W["Worker loop"]
-  W -->|batched forward pass| M["Model on GPU (4-bit)"]
-  M -->|responses| W
-  W -->|write result| API
-  API -->|JSON response| Client
-  API -->|"GET /stats"| Stats["Metrics: batch size, tokens/s, p95"]
+  Client["Client (curl / benchmark)"]
+
+  subgraph apiproc["API process (no GPU)"]
+    API["FastAPI server"]
+  end
+
+  subgraph redis["Redis"]
+    Q["queue (list of jobs)"]
+    RES["result keys"]
+    STAT["stat counters + samples"]
+  end
+
+  subgraph workerproc["Worker process (GPU)"]
+    W["worker_loop"]
+    M["Model, 4-bit"]
+  end
+
+  Client -->|"POST /generate"| API
+  API -->|"RPUSH job"| Q
+  Q -->|"BLPOP job"| W
+  W -->|"batched forward pass"| M
+  M -->|"generated text"| W
+  W -->|"SET result"| RES
+  API -->|"poll GET result"| RES
+  API -->|"JSON response"| Client
+  W -->|"INCR / RPUSH"| STAT
+  API -->|"GET /stats reads"| STAT
 ```
 
 ## What works today
 
 Actually implemented and running:
 
-- **Dynamic batching**: a worker collects concurrent requests within a short window and runs them as one batch, with left-padding and a per-model chat template applied automatically.
+- **Separate API and worker processes** coordinating over a Redis queue, so the API needs no GPU and the worker can run anywhere Redis is reachable.
+- **Dynamic batching**: the worker collects concurrent requests within a short window and runs them as one batch, with left-padding and a per-model chat template applied automatically.
 - **Metrics**: request count, batch size, tokens/sec, and average/p95 latency, exposed via `GET /stats` and clearable with `POST /reset`.
 - **4-bit quantization**: optional bitsandbytes loading so 7B models run in ~5 GB of VRAM instead of ~28 GB at full precision.
 - **Async architecture**: the blocking `model.generate()` call is pushed to a background thread so the event loop stays free to accept requests.
@@ -57,7 +77,6 @@ Actually implemented and running:
 
 Roughly in the order I plan to build it:
 
-- **Separate API and worker processes** over a Redis queue (the app is a single process today)
 - **Multiple GPU workers** with a scheduler, health checks, and retries
 - **Observability**: Prometheus metrics and Grafana dashboards instead of hard coded counters
 - **KV cache reuse** across requests, and streaming token responses
@@ -79,6 +98,7 @@ So batching alone gave ~2.7x throughput and cut p95 latency roughly in half, by 
 
 - Python 3.12
 - An NVIDIA GPU with CUDA (it will fall back to CPU, just slowly)
+- Docker, for running Redis
 
 ### Install
 
@@ -89,11 +109,20 @@ venv/bin/pip install -r requirements.txt
 
 ### Run
 
+Three processes, each in its own terminal:
+
 ```bash
+# 1. Redis
+docker run -d --name nanoredis -p 6379:6379 redis
+
+# 2. the GPU worker (loads the model, ~20s)
+venv/bin/python worker/worker.py
+
+# 3. the API server (starts instantly, no GPU)
 venv/bin/uvicorn api.api_server:app --port 8000
 ```
 
-First launch downloads the model into the Hugging Face cache. The model is set at the top of [api/api_server.py](api/api_server.py) via `MODEL_NAME`; 4-bit loading is controlled by the `BitsAndBytesConfig` just below it.
+First worker launch downloads the model into the Hugging Face cache. The model is set at the top of [worker/worker.py](worker/worker.py) via `MODEL_NAME`; 4-bit loading is controlled by the `BitsAndBytesConfig` just below it.
 
 ### Send a request
 
@@ -113,7 +142,8 @@ Reset the metrics between runs with `curl -X POST http://localhost:8000/reset`.
 
 ## Repository layout
 
-- [api/api_server.py](api/api_server.py) &rarr; the whole server: endpoints, request queue, batching worker, and metrics
+- [api/api_server.py](api/api_server.py) &rarr; API server: endpoints, pushes jobs to Redis, reads results and stats
+- [worker/worker.py](worker/worker.py) &rarr; GPU worker: loads the model, batching loop, writes results and stats to Redis
 - [experiments/benchmark.py](experiments/benchmark.py) &rarr; async load tester
 - [requirements.txt](requirements.txt) &rarr; dependencies
 

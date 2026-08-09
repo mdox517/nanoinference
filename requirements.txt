@@ -12,5 +12,4 @@ bitsandbytes==0.50.0      # 4-bit quantization (run 7B models in ~5GB VRAM)
 # Benchmarking / HTTP client
 httpx==0.28.1
 
-# Phase 4: distributed queue (uncomment when you add Redis)
-# redis==5.0.8
+redis==5.0.8
