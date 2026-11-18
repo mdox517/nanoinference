@@ -5,6 +5,8 @@ import json
 import redis.asyncio as redis
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from pathlib import Path
 from pydantic import BaseModel
 
 
@@ -15,6 +17,11 @@ r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 class GenerateRequest(BaseModel):
     prompt: str
     max_new_tokens: int = 50
+
+
+@app.get("/ui", include_in_schema=False)
+async def playground():
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/")

@@ -124,6 +124,10 @@ venv/bin/uvicorn api.api_server:app --port 8000
 
 First worker launch downloads the model into the Hugging Face cache. The model is set at the top of [worker/worker.py](worker/worker.py) via `MODEL_NAME`; 4-bit loading is controlled by the `BitsAndBytesConfig` just below it.
 
+### Try the playground
+
+With Redis, the worker, and the API running, open [http://localhost:8000/ui](http://localhost:8000/ui). Enter a prompt to generate a response and watch the server metrics update.
+
 ### Send a request
 
 ```bash
